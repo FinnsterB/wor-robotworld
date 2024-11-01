@@ -56,4 +56,22 @@ namespace Application
 	{
 		worldNumber = aWorldNumber;
 	}
+    void MainSettings::setUseKalmanFilter(bool aUseKalman)
+    {
+		useKalmanFilter = aUseKalman;
+    }
+    void MainSettings::setUseParticleFilter(bool aUseParticle)
+    {
+		useParticleFilter = aUseParticle;
+    }
+    bool MainSettings::getUseKalmanFilter()
+    {
+        return useKalmanFilter;
+    }
+
+    bool MainSettings::getUseParticleFilter()
+    {
+        return useParticleFilter;
+    }
+
 } /* namespace Application */

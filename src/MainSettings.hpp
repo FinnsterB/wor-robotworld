@@ -44,11 +44,29 @@ namespace Application
 			 *
 			 */
 			void setWorldNumber( unsigned long aWorldNumber);
+			/**
+			 * 
+			*/
+			void setUseKalmanFilter(bool aUseKalman);
+			/**
+			*
+			*/
+			void setUseParticleFilter(bool aUseParticle);
+			/**
+			 * 
+			*/
+			bool getUseKalmanFilter();
+			/**
+			 * 
+			*/
+			bool getUseParticleFilter();
 
 		private:
 			bool drawOpenSet;
 			unsigned long speed;
 			unsigned long worldNumber;
+			bool useKalmanFilter;
+			bool useParticleFilter;
 	};
 
 } /* namespace Application */

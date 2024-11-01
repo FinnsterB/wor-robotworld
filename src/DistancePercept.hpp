@@ -19,11 +19,13 @@ namespace Model
 			/**
 			 *
 			 */
-			explicit DistancePercept( const wxPoint& aPoint) :
-				point(aPoint)
+			explicit DistancePercept( const wxPoint& aPoint, const double aDistance = 0, const double anAngle = 0) :
+				point(aPoint), distance(aDistance), angle(anAngle)
 			{
 			}
 			wxPoint point;
+			double distance;
+			double angle;
 			/**
 			 * @name Debug functions
 			 */

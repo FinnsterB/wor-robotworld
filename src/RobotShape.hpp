@@ -144,11 +144,36 @@ namespace View
 			/**
 			 *
 			 */
+			void drawKalmanPath( wxDC& dc);
+			/**
+			 *
+			 */
+			void drawParticlePath( wxDC& dc);
+			/**
+			 *
+			 */
 			void drawRobot( wxDC& dc);
 			/**
 			 *
 			 */
 			void drawLaser( wxDC& dc);
+			/**
+			 * 
+			*/
+			void drawLidar( wxDC& dc);
+			/**
+			 * 
+			*/
+			void drawParticles( wxDC& dc);
+			/**
+			 * 
+			*/
+			void drawCompass(wxDC& dc);
+			/**
+			 * 
+			*/
+			void drawOdo(wxDC& dc);
+			
 	};
 } // namespace View
 #endif // ROBOTSHAPE_HPP_

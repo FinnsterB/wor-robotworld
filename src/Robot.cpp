@@ -4,6 +4,7 @@
 #include "CommunicationService.hpp"
 #include "Goal.hpp"
 #include "LaserDistanceSensor.hpp"
+#include "LidarDistanceSensor.hpp"
 #include "Logger.hpp"
 #include "MainApplication.hpp"
 #include "MathUtils.hpp"
@@ -19,6 +20,7 @@
 #include <ctime>
 #include <sstream>
 #include <thread>
+#include <random>
 
 namespace Model
 {
@@ -46,13 +48,27 @@ namespace Model
 								speed( 0.0),
 								acting(false),
 								driving(false),
-								communicating(false)
+								communicating(false),
+								pf(ParticleFilter(100))// Initialise Particle Filter with 100 particles
 	{
 		std::shared_ptr< AbstractSensor > laserSensor = std::make_shared<LaserDistanceSensor>( *this);
 		attachSensor( laserSensor);
 
+		std::shared_ptr< AbstractSensor > lidarSensor = std::make_shared<LidarDistanceSensor>( *this);
+		attachSensor( lidarSensor);
 		// We use the real position for starters, not an estimated position.
 		startPosition = position;
+
+		//Initializing kalman belief
+		Matrix<double, 2, 1> stateVector{{{position.x*1.0}}, {{position.y*1.0}}};
+		Matrix<double, 2, 2> covarianceMatrix{{1,0},{0,1}};
+		kalmanBelief.first = stateVector;
+		kalmanBelief.second = covarianceMatrix;
+
+		//Initializing particle belief
+		double init_std[] = {1.0, 1.0}; //Stdev noise for particle initialization
+		pf.init(position.x, position.y, init_std);	
+		
 	}
 	/**
 	 *
@@ -423,7 +439,7 @@ namespace Model
 		return os.str();
 	}
 	/**
-	 *
+	 * 
 	 */
 	void Robot::drive()
 	{
@@ -446,14 +462,21 @@ namespace Model
 			// We use the real position for starters, not an estimated position.
 			startPosition = position;
 
+			Application::MainSettings& settings = Application::MainApplication::getSettings(); 
+
 			unsigned pathPoint = 0;
-			while (position.x > 0 && position.x < 500 && position.y > 0 && position.y < 500 && pathPoint < path.size()) // @suppress("Avoid magic numbers")
+			
+			while (position.x > 0 && position.x < 1024 && position.y > 0 && position.y < 1024 && pathPoint < path.size()) // @suppress("Avoid magic numbers")
 			{
 				// Do the update
 				const PathAlgorithm::Vertex& vertex = path[pathPoint+=static_cast<unsigned int>(speed)];
 				front = BoundedVector( vertex.asPoint(), position);
+				int prevPosX = position.x;
+				int prevPosY = position.y;
 				position.x = vertex.x;
 				position.y = vertex.y;
+				int deltaX = position.x - prevPosX;
+				int deltaY = position.y - prevPosY;
 
 				// Do the measurements / handle all percepts
 				// TODO There are race conditions here:
@@ -472,7 +495,14 @@ namespace Model
 						{
 							DistancePercept* distancePercept = dynamic_cast<DistancePercept*>(percept.value().get());
 							currentRadarPointCloud.push_back(*distancePercept);
-						}else
+						}
+						else if (typeid(tempAbstractPercept) == typeid(DistancePercepts))
+						{
+							DistancePercepts* distancePercepts = dynamic_cast<DistancePercepts*>(percept.value().get());
+							currentLidarPointCloud = distancePercepts->pointCloud;
+							std::cout << "Found " << currentLidarPointCloud.size() <<  "intersections" << std::endl;
+						}
+						else
 						{
 							Application::Logger::log(std::string("Unknown type of percept:") + typeid(tempAbstractPercept).name());
 						}
@@ -483,7 +513,48 @@ namespace Model
 				}
 
 				// Update the belief
+				if(settings.getUseKalmanFilter())
+				{
+					int deltaX = position.x - prevPosX;
+					int deltaY = position.y - prevPosY;
 
+					Matrix<double, 2, 1> stateVector{{{prevPosX*1.0}}, {{prevPosY*1.0}}};
+					Matrix<double, 2, 2> covarianceMatrix{{1,0},{0,1}};
+					Matrix<double, 2, 1> updateVector{{{(deltaX*1.0)}},{{(deltaY*1.0)}}};
+					Matrix<double, 2, 1> measurementVector{(position.x*1.0)+ noise(gen), (position.y*1.0)+ noise(gen)};
+					Matrix<double, 2, 2> transformationMatrix{{1,0},{0,1}};
+					Matrix<double, 2, 2> naturalChange{{1,0},{0,1}};
+					Matrix<double, 2, 2> processNoise{{noise(gen),0},{0,noise(gen)}};
+
+					//We use the kalmanBelief kept by the robot object
+					kalmanBelief = Matrix<double,2, 2>::doKalmanIteration(kalmanBelief.first, kalmanBelief.second, updateVector, measurementVector, transformationMatrix, naturalChange, processNoise); //TODO A en B 1 en ruis ofzo idk
+					
+					odoValue += Utils::Shape2DUtils::distance(wxPoint(prevPosX, prevPosY), wxPoint((int)kalmanBelief.first.at(0, 0), (int)kalmanBelief.first.at(1, 0))); // Hardcoded
+					std::cout << "Predicted position: " << kalmanBelief.first.to_string() <<  " Actual position: " << std::to_string(position.x) << " " << std::to_string(position.y) << ", odoDistance: " << odoValue << std::endl;
+					kalmanPath.push_back(wxPoint((int)kalmanBelief.first.at(0, 0), (int)kalmanBelief.first.at(1, 0)));
+				}
+				if(settings.getUseParticleFilter())
+				{
+					double delta_t = 1;
+					double std_pos[] = {1.0, 1.0}; //Stdev for noise on position
+					pf.predict(delta_t, std_pos, deltaX, deltaY);
+
+					double sensor_range = 10.0;
+					double std_landmark[] = {0.5, 0.5}; //Stdev for noise on landmark position
+					std::vector<std::pair<double, double>> observations = {{5.5, 5.5}, {6.0, 6.0}};
+					pf.updateWeights(sensor_range, std_landmark, currentLidarPointCloud);
+
+					pf.resample();
+
+					particlePath.push_back(wxPoint(pf.getParticles().front().x, pf.getParticles().front().y));
+
+					// std::cout << "Calculated particles" << std::endl;
+					// for (const auto& particle : pf.getParticles()) {
+					// 	std::cout << "Particle " << particle.id << ": x = " << particle.x 
+					// 			<< ", y = " << particle.y << ", weight = " << particle.weight << std::endl;
+					// }
+
+				}
 				// Stop on arrival or collision
 				if (arrived(goal) || collision())
 				{
@@ -502,6 +573,11 @@ namespace Model
 					break;
 				}
 			} // while
+		
+
+
+			
+			
 
 			for (std::shared_ptr< AbstractSensor > sensor : sensors)
 			{

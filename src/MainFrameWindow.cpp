@@ -183,7 +183,7 @@ namespace Application
 					wxGBPosition( 1, 1),
 					wxGBSpan( 1, 1),
 					wxSHRINK);
-		robotWorldCanvas->SetMinSize( wxSize( 500,500));
+		robotWorldCanvas->SetMinSize( wxSize( 1024,1024));
 
 		sizer->Add( 5, 5,
 					wxGBPosition( 2, 2),
@@ -356,6 +356,18 @@ namespace Application
 					wxGBSpan( 1, 1),
 					wxSHRINK | wxALIGN_CENTRE);
 
+		sizer->Add( useKalmanFilterCheckbox = Application::makeCheckbox(panel, 
+																		"Use Kalman filter",
+																		[this](wxCommandEvent& event){this->onUseKalmanFilter(event);}),
+					wxGBPosition(5, 1),
+					wxGBSpan( 1, 1),
+					wxSHRINK | wxALIGN_CENTER);
+		sizer->Add( useParticleFilterCheckbox = Application::makeCheckbox(panel, 
+																		"Use Particle filter",
+																		[this](wxCommandEvent& event){this->onUseParticleFilter(event);}),
+					wxGBPosition(5, 2),
+					wxGBSpan( 1, 1),
+					wxSHRINK | wxALIGN_CENTER);
 		/////// Speed
 		sizer->Add(new wxStaticText(panel,
 									wxID_ANY,
@@ -589,9 +601,25 @@ namespace Application
 		mainSettings.setDrawOpenSet(drawOpenSetCheckbox->IsChecked());
 	}
 	/**
-	 *
-	 */
-	void MainFrameWindow::OnSpeedSpinCtrlUpdate( wxCommandEvent& UNUSEDPARAM(anEvent))
+	 * 
+	*/
+	void MainFrameWindow::onUseKalmanFilter(wxCommandEvent& UNUSEDPARAM(anEvent))
+	{
+		MainSettings& mainSettings = MainApplication::getSettings();
+		mainSettings.setUseKalmanFilter(useKalmanFilterCheckbox->IsChecked());
+	}
+	/**
+	 * 
+	*/
+    void MainFrameWindow::onUseParticleFilter(wxCommandEvent& UNUSEDPARAM(anEvent))
+    {
+		MainSettings& mainSettings = MainApplication::getSettings();
+		mainSettings.setUseParticleFilter(useParticleFilterCheckbox->IsChecked());
+    }
+    /**
+     *
+     */
+    void MainFrameWindow::OnSpeedSpinCtrlUpdate( wxCommandEvent& UNUSEDPARAM(anEvent))
 	{
 //		TRACE_DEVELOP(anEvent.GetString().ToStdString());
 //		Model::RobotPtr robot = Model::RobotWorld::getRobotWorld().getRobot( "Robot");
@@ -680,6 +708,8 @@ namespace Application
 			case 1:
 			{
 				TRACE_DEVELOP("Please create your own student world 1");
+				robotWorldCanvas->populate( 1);
+
 				break;
 			}
 			case 2:

@@ -13,12 +13,15 @@
 #include "Point.hpp"
 #include "Region.hpp"
 #include "Size.hpp"
+#include "Matrix.hpp"
+#include "ParticleFilter.hpp"
 
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <random>
 
 namespace Messaging
 {
@@ -213,6 +216,20 @@ namespace Model
 				return path;
 			}
 			/**
+			 * 
+			 */
+			std::vector<wxPoint> getKalmanPath() const
+			{
+				return kalmanPath;
+			}
+			/**
+			 * 
+			 */
+			std::vector<wxPoint> getParticlePath() const
+			{
+				return particlePath;
+			}
+			/**
 			 * @name Messaging::MessageHandler functions
 			 */
 			//@{
@@ -255,6 +272,25 @@ namespace Model
 			// Radar
 			PointCloud currentRadarPointCloud; // The latest radar point cloud
 			//@}
+
+			// Lidar
+			PointCloud currentLidarPointCloud; // The latest lidar point cloud
+			//@}
+
+			std::vector<std::pair<wxPoint, double>> particleBelief; // The belief based on particle filter, contains pairs of points and weights
+
+			std::pair<Matrix<double, 2,1>, Matrix<double, 2,2>> kalmanBelief; // The belief based on Kalman filter
+
+			std::vector<wxPoint> kalmanPath;
+
+			std::vector<wxPoint> particlePath;
+
+			int odoValue = 0;
+			/**
+			 * 
+			 */
+			ParticleFilter pf;
+
 
 		protected:
 			/**
@@ -330,6 +366,14 @@ namespace Model
 			 *
 			 */
 			Messaging::ServerPtr server;
+			/**
+			 * 
+			*/
+			std::random_device rd{};
+			std::mt19937 gen{rd()};
+			std::uniform_int_distribution <int> point;
+			std::normal_distribution<double> noise;
+			
 	};
 } // namespace Model
 #endif // ROBOT_HPP_

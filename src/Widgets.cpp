@@ -1,7 +1,5 @@
 #include "Widgets.hpp"
 
-#include <string>
-
 /**
  *
  */

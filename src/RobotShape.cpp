@@ -93,6 +93,17 @@ namespace View
 		drawRobot( dc);
 
 		drawLaser( dc);
+
+		drawLidar( dc);
+
+		if(Application::MainApplication::getSettings().getUseParticleFilter()){
+			drawParticles(dc);
+			drawParticlePath(dc);
+		}
+
+		if(Application::MainApplication::getSettings().getUseKalmanFilter()){
+			drawKalmanPath(dc);
+		}
 	}
 	/**
 	 *
@@ -204,9 +215,34 @@ namespace View
 		}
 	}
 	/**
-	 *
+	 * 
 	 */
-	void RobotShape::drawRobot( wxDC& dc)
+    void RobotShape::drawKalmanPath(wxDC &dc)
+    {
+		std::vector<wxPoint> kalmanPath = getRobot()->getKalmanPath();
+		dc.SetPen( wxPen(  "RED", borderWidth*3, wxPENSTYLE_SOLID));
+		for (wxPoint& p : kalmanPath)
+		{
+			dc.DrawCircle(p, 3);
+		}
+		
+    }
+	/**
+	 * 
+	 */
+	void RobotShape::drawParticlePath(wxDC & dc)
+	{
+		std::vector<wxPoint> particlePath = getRobot()->getParticlePath();
+		dc.SetPen( wxPen(  "GREEN", borderWidth*3, wxPENSTYLE_SOLID));
+		for (wxPoint& p : particlePath)
+		{
+			dc.DrawCircle(p, 3);
+		}
+	}
+    /**
+     *
+     */
+    void RobotShape::drawRobot( wxDC& dc)
 	{
 		// Draws a rectangle with the given top left corner, and with the given size.
 		dc.SetBrush( *wxWHITE_BRUSH);
@@ -260,4 +296,48 @@ namespace View
 			}
 		}
 	}
+
+	void RobotShape::drawLidar( wxDC& dc)
+	{
+		double angle = 0.0;
+		for (size_t i = 0; i < 180; i++)
+		{
+
+			// Draw the laser beam
+			//dc.SetPen( wxPen(  "BLUE", 1, wxPENSTYLE_SOLID));
+			//dc.DrawLine( centre.x, centre.y, static_cast< int >( centre.x + std::cos( angle) * Model::laserBeamLength), static_cast< int >( centre.y + std::sin( angle) * Model::laserBeamLength));
+
+			// Draw the radar endPoints that are actually touching the walls
+			for (const Model::DistancePercept &d : getRobot()->currentLidarPointCloud)
+			{
+				if (d.point != wxDefaultPosition || (d.point.x != Model::noObject && d.point.y != Model::noObject))
+				{
+					dc.SetPen( wxPen(  "BLUE", borderWidth, wxPENSTYLE_SOLID));
+					dc.DrawCircle( d.point, 1);
+				}
+			}
+			angle += 2.0*3.14/180.0;
+		}
+	}
+    void RobotShape::drawParticles(wxDC &dc)
+    {
+		int pointColorCounter = 0;
+		dc.SetPen(wxPen("GREEN", borderWidth, wxPENSTYLE_DOT));
+		for(auto& p : getRobot()->pf.getParticles()){
+			pointColorCounter++;
+			if(pointColorCounter > (getRobot()->pf.getParticles().size()/4)){ // Draw first quarter of the particles with the best weight in green
+				dc.SetPen(wxPen("YELLOW", borderWidth, wxPENSTYLE_DOT)); // Switch to yellow for the rest
+			}
+			dc.DrawCircle(wxPoint(p.x, p.y), 2);
+		}
+    }
+    void RobotShape::drawCompass(wxDC &dc)
+    {
+		
+    }
+
+    void RobotShape::drawOdo(wxDC &dc)
+    {
+    }
+
 } // namespace View

@@ -274,15 +274,10 @@ namespace Model
 	/**
 	 *
 	 */
-	void RobotWorld::populate( int UNUSEDPARAM(aNumberOfWalls))
+	void RobotWorld::populate( int aNumberOfWalls)
 	{
-		RobotWorld::getRobotWorld().newRobot( "Robot", wxPoint(163,111),false); // @suppress("Avoid magic numbers")
 
-//		static const wxPoint coordinates[] = {
-//			wxPoint( 100, 25), wxPoint( 700, 25),
-//			wxPoint( 75, 200), wxPoint( 250, 600),
-//			wxPoint( 800, 300), wxPoint( 800, 700),
-//			wxPoint( 50, 825), wxPoint( 600, 825)};
+
 //
 //		for (int i = 0; i < 2 * aNumberOfWalls; i += 2)
 //		{
@@ -291,8 +286,23 @@ namespace Model
 //
 //		RobotWorld::getRobotWorld().newGoal( "Goal", wxPoint(850, 500),false); // @suppress("Avoid magic numbers")
 		
-		RobotWorld::getRobotWorld().newWall( wxPoint(7,234), wxPoint(419,234) ,false); // @suppress("Avoid magic numbers")
-		RobotWorld::getRobotWorld().newGoal( "Goal", wxPoint(320,285),false); // @suppress("Avoid magic numbers")
+		switch (aNumberOfWalls)
+		{
+		case 1:
+			RobotWorld::getRobotWorld().newRobot( "Robot", wxPoint(163,111),false); //@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newWall( wxPoint(7,234),wxPoint(419,234),false);//@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newWall( wxPoint(844,317),wxPoint(720,509),false);//@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newWall( wxPoint(95,540),wxPoint(433,684),false);//@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newWall( wxPoint(671,526),wxPoint(552,747),false);//@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newGoal( "Goal", wxPoint(320,285),false);//@suppress("Avoid magic numbers")
+			break;
+		
+		default:
+			RobotWorld::getRobotWorld().newRobot( "Robot", wxPoint(163,111),false); //@suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newWall( wxPoint(7,234), wxPoint(419,234) ,false); // @suppress("Avoid magic numbers")
+			RobotWorld::getRobotWorld().newGoal( "Goal", wxPoint(320,285),false); // @suppress("Avoid magic numbers")
+			break;
+		}
 		
 
 		notifyObservers();
@@ -302,13 +312,6 @@ namespace Model
 	 */
 	void RobotWorld::unpopulate( bool aNotifyObservers /*= true*/)
 	{
-		for( auto robot : robots)
-		{
-			if (robot->isCommunicating())
-			{
-				robot->stopCommunicating();
-			}
-		}
 		robots.clear();
 		wayPoints.clear();
 		goals.clear();

@@ -87,6 +87,8 @@ namespace Application
 
 			wxPanel* configPanel;
 			wxCheckBox* drawOpenSetCheckbox;
+			wxCheckBox* useKalmanFilterCheckbox;
+			wxCheckBox* useParticleFilterCheckbox;
 			wxSpinCtrl* speedSpinCtrl;
 			wxRadioBox* worldNumber;
 
@@ -99,6 +101,8 @@ namespace Application
 			void OnAbout( wxCommandEvent& anEvent);
 
 			void OnDrawOpenSet( wxCommandEvent& anEvent);
+			void onUseKalmanFilter(wxCommandEvent& anEvent);
+			void onUseParticleFilter(wxCommandEvent& anEvent);
 			void OnSpeedSpinCtrlUpdate( wxCommandEvent& anEvent);
 			void OnWorld1( wxCommandEvent& anEvent);
 			void OnWorld2( wxCommandEvent& anEvent);
