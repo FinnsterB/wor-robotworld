@@ -1,3 +1,6 @@
+ADDITION FOR CONFIGURABLE NOISE:
+Only modify the float values in the robotConfig.txt file. DO NOT CHANGE THE ORDER! Unless you want some undefined behaviour...
+
 RobotWorld building and using (readme)
 --------------------------------------
 
