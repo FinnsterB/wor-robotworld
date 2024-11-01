@@ -63,7 +63,7 @@ namespace Model
 
 		// Check if the file opened successfully
 		if (!file.is_open()) {
-			std::cerr << "Failed to open file." << std::endl;
+			std::cerr << "Failed to open file. Make sure to run the executable from it's own directory!" << std::endl;
 			exit(1);
 		}
 
