@@ -38,6 +38,11 @@ namespace Model
 	class Goal;
 	typedef std::shared_ptr< Goal > GoalPtr;
 
+	enum RobotConfigParams{
+		COMPASS_STDEV,
+		MOVEMENT_STDEV,
+		LIDAR_STDEV
+	};
 	/**
 	 *
 	 */
@@ -373,7 +378,10 @@ namespace Model
 			std::mt19937 gen{rd()};
 			std::uniform_int_distribution <int> point;
 			std::normal_distribution<double> noise;
-			
+			/**
+			 * 
+			 */
+			std::vector<float> robotConfig;
 	};
 } // namespace Model
 #endif // ROBOT_HPP_

@@ -59,6 +59,23 @@ namespace Model
 		// We use the real position for starters, not an estimated position.
 		startPosition = position;
 
+		std::ifstream file("../../robotConfig.txt");
+
+		// Check if the file opened successfully
+		if (!file.is_open()) {
+			std::cerr << "Failed to open file." << std::endl;
+			exit(1);
+		}
+
+		// Read from the file
+		std::string discard;
+		float value;
+		while (file >> discard >> value) {
+			robotConfig.push_back(value);
+		}
+
+		file.close();
+
 		//Initializing kalman belief
 		Matrix<double, 2, 1> stateVector{{{position.x*1.0}}, {{position.y*1.0}}};
 		Matrix<double, 2, 2> covarianceMatrix{{1,0},{0,1}};
@@ -66,7 +83,7 @@ namespace Model
 		kalmanBelief.second = covarianceMatrix;
 
 		//Initializing particle belief
-		double init_std[] = {1.0, 1.0}; //Stdev noise for particle initialization
+		double init_std[] = {robotConfig.at(MOVEMENT_STDEV), robotConfig.at(MOVEMENT_STDEV)}; //Stdev noise for particle initialization
 		pf.init(position.x, position.y, init_std);	
 		
 	}
@@ -540,7 +557,7 @@ namespace Model
 					pf.predict(delta_t, std_pos, deltaX, deltaY);
 
 					double sensor_range = 10.0;
-					double std_landmark[] = {0.5, 0.5}; //Stdev for noise on landmark position
+					double std_landmark[] = {robotConfig.at(LIDAR_STDEV), robotConfig.at(LIDAR_STDEV)}; //Stdev for noise on landmark position
 					std::vector<std::pair<double, double>> observations = {{5.5, 5.5}, {6.0, 6.0}};
 					pf.updateWeights(sensor_range, std_landmark, currentLidarPointCloud);
 

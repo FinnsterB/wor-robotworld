@@ -23,6 +23,7 @@ robotworld_SOURCES 	= 	AbstractActuator.cpp	\
 						Notifier.cpp	\
 						ObjectId.cpp	\
 						Observer.cpp	\
+						ParticleFilter.cpp	\
 						RectangleShape.cpp	\
 						Robot.cpp	\
 						RobotShape.cpp	\
