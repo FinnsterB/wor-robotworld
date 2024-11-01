@@ -1,6 +1,6 @@
 /.settings/
 /.autotools
-/.vscode
+/.vscode/
 /.cproject
 /.project
 /gmon.out
@@ -8,3 +8,4 @@
 /docs/generated
 /configure~
 /RobotWorld.cppcheck
+/docs/
