@@ -1,5 +1,6 @@
 /.settings/
 /.autotools
+/.vscode
 /.cproject
 /.project
 /gmon.out
